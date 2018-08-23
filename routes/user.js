@@ -6,6 +6,7 @@ var axios = require('axios');
 var app = express.Router();
 
 var User = require("../models/users").users_model;
+var Search = require("../models/Search").search_model;
 // var VerifyToken = require("./VerifyToken");
 
 var secret = "Vibhor";
@@ -142,17 +143,22 @@ app.post("/wordsearch", verifyToken, function(req, res){
        if(err) {
          res.sendStatus(403);
        } else {
-         console.log(word);
+         // console.log(word);
          axios.get('https://api.github.com/search/repositories', {
             params: {
               ID: 12345,
-              q: 'tetris+language:assembly',
+              q: word,
               sort:'stars',
-              order:'desc'
+              order:'desc',
+              page: 1,
+              per_page: 2
             }
           })
           .then(function (response) {
-            console.log(response);
+            res.send(response.data.items);
+            //ENTRY IN DATABASE
+            
+
           })
           .catch(function (error) {
             console.log(error);
