@@ -28,7 +28,8 @@ app.get("/", function(req, res){
 app.use("/", user);
 
 //Middleware
-app.listen(8000, function(req, res){
+var PORT = process.env.PORT || 8000
+app.listen(PORT, function(req, res){
   console.log("Listening at 8000");
 })
 
