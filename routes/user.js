@@ -1,9 +1,8 @@
-// knex migrate:make migration_name
-
 var express = require('express');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 var validator = require("email-validator");
+var axios = require('axios');
 var app = express.Router();
 
 var User = require("../models/users").users_model;
@@ -133,6 +132,34 @@ app.get("/profile",verifyToken, function(req, res){
          })
 
 
+       }
+     });
+})
+
+app.post("/wordsearch", verifyToken, function(req, res){
+  var word = req.body.wordsearch;
+  jwt.verify(req.token, secret, (err, authData) => {
+       if(err) {
+         res.sendStatus(403);
+       } else {
+         console.log(word);
+         axios.get('https://api.github.com/search/repositories', {
+            params: {
+              ID: 12345,
+              q: 'tetris+language:assembly',
+              sort:'stars',
+              order:'desc'
+            }
+          })
+          .then(function (response) {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+          })
+          .then(function () {
+            // always executed
+          }); 
        }
      });
 })
