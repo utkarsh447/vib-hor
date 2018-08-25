@@ -7,18 +7,8 @@ var app = express.Router();
 
 var User = require("../models/users").users_model;
 var Search = require("../models/Search").search_model;
-// var VerifyToken = require("./VerifyToken");
 
 var secret = "Vibhor";
-
-/*function getEncrypt(password) {
-  var hash = crypto.createHmac("sha512", secret)
-    .update(password)
-    .digest("base64");
-
-  var hashedData = sha512(hash);
-  return hashedData.toString("hex");
-}*/
 
 function verifyToken(req, res, next) {
   const bearerHeader = req.headers['authorization'];
@@ -33,6 +23,7 @@ function verifyToken(req, res, next) {
   } else {
     // Forbidden
       res.sendStatus(403);
+
   }
 
 }
@@ -40,12 +31,6 @@ app.post("/register", function(req, res){
    message = '';
    var name= req.body.username;
    var email= req.body.email;
-   /*if(validator.validate(email)==false){
-     res.send({
-       Email: "Invalid Email Id"
-     })
-   }*/
-   // var pass = bcrypt.hashSync(req.body.password, 8);
    var pass = req.body.password;
 
    User.forge({
@@ -68,48 +53,45 @@ app.post("/register", function(req, res){
 
 app.get("/login", function(req, res){
   res.send({
-    Platform: "Use Postman"
+    Platform: "Backend API Endpoint Working."
   })
 })
 
 app.post("/login", function(req, res){
-   var message = '';
-   // var sess = req.session;
    var email= req.body.email;
-   // var pass= bcrypt.compareSync(req.body.password, 8);
    var pass = req.body.password;
 
    User.where({
       email: email,
       password: pass
    })
-      .fetch()
-      .then(function(user){
-         if(user===null){
-            message = 'Wrong Credentials.';
-            console.log(message);
-            res.send({message: message});
-         }
-         else{
-            user1 = user.toJSON();
-            var user = {
-              id: user1.id,
-              email: user1.email,
-              username: user1.username
-            }
-            console.log("userid: " + user1.id);
+    .fetch()
+    .then(function(user){
+       if(user===null){
+          message = 'Wrong Credentials.';
+          console.log(message);
+          res.send({message: message});
+       }
+       else{
+          user1 = user.toJSON();
+          var user = {
+            id: user1.id,
+            email: user1.email,
+            username: user1.username
+          }
+          console.log("userid: " + user1.id);
 
-            jwt.sign({user}, secret, { expiresIn: '24h' }, (err, token) => {
-              console.log(token);
-              res.json({
-                token
-              });
+          jwt.sign({user}, secret, { expiresIn: '24h' }, (err, token) => {
+            console.log(token);
+            res.json({
+              token
             });
-         }
-      })
-      .catch(function (error) {
-        console.error(error);
-      })
+          });
+       }
+    })
+    .catch(function (error) {
+      console.error(error);
+    })
 });
 
 
@@ -131,8 +113,6 @@ app.get("/profile",verifyToken, function(req, res){
              data1
            });
          })
-
-
        }
      });
 })
@@ -151,51 +131,31 @@ app.post("/wordsearch", verifyToken, function(req, res){
               sort:'stars',
               order:'desc',
               page: 1,
-              per_page: 2
+              per_page: 5
             }
           })
           .then(function (response) {
             res.send(response.data.items);
-            //ENTRY IN DATABASE
-            
+            console.log(authData.user);
+            Search.forge({
+                word: word,
+                email: authData.user.email
+            }, {method: "insert"})
+              .save()
+              .then(function(response){
+                console.log("Created WordID: "+ response.id)
+              })
+              .catch(function(reason){
+                  console.error(reason);
+
+              })
 
           })
           .catch(function (error) {
-            console.log(error);
-          })
-          .then(function () {
-            // always executed
-          }); 
+            console.error(error);
+          }) 
        }
      });
 })
-
-/*app.post("/profile/edit",verifyToken, function(req, res){
-   var fullname = req.body.fullname;
-   jwt.verify(req.token, secret, (err, authData) => {
-       if(err) {
-         res.sendStatus(403);
-       }
-       else {
-         User.forge({
-           id: authData.user.id,
-           fullname: fullname
-         })
-         .save()
-         .then(function(data){
-           //data.fullname = fullname;
-           res.send({
-             Edit: "Successful"
-           })
-         })
-
-       //});
-      }
-    });
-
-
-
- })*/
-
 
 module.exports = app;
